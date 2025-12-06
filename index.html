@@ -1,4 +1,76 @@
-<!DOCTYPE html> <html> <head> <title>Secret Santa</title> <meta name="viewport" content="width=device-width, initial-scale=1"> <style> body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; } textarea, input { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; } button { padding: 10px 20px; margin-top: 12px; width: 100%; cursor: pointer; } .hidden { display: none; } .codeBox { font-size: 20px; font-weight: bold; text-align: center; margin-top: 10px; } .small { font-size: 13px; color: #666; margin-top: 6px; } .row { display:flex; gap:10px; } .row > button { flex: 1; } </style> <!-- Firebase compat --> <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script> </head> <body> <h2>Secret Santa 🎁</h2> <!-- STEP 1: CREATE SESSION --> <div id="createSession"> <h3>Create a Secret Santa Session</h3> <p>Enter names (one per line):</p> <textarea id="namesInput" rows="6" placeholder="Alice\nBob\nCharlie"></textarea> <button onclick="createSession()">Create Session</button> <div class="small">The session code appears after creation. Device that creates session is admin.</div> </div> <!-- STEP 2: SHOW SESSION CODE --> <div id="sessionCreated" class="hidden"> <h3>Session Created!</h3> <p>Share this code with everyone:</p> <div id="sessionCode" class="codeBox"></div> <div class="row" style="margin-top:12px;"> <button onclick="copyCode()">Copy Code</button> <button onclick="gotoJoin()">Open Join Page</button> </div> </div> <hr> <!-- STEP 3: JOIN SESSION --> <div id="joinSession"> <h3>Join a Session</h3> <input id="joinCodeInput" placeholder="Enter session code"> <div class="row"> <button onclick="joinSession()">Join</button> <button onclick="quickJoin()">Quick join (paste code)</button> </div> <div id="joinMsg" class="small"></div> </div> <!-- STEP 4: DRAW NAME --> <div id="drawBox" class="hidden"> <h3>Draw Your Secret Santa 🎅</h3> <div id="drawInfo" class="small"></div> <div class="row"> <button id="drawBtn" onclick="drawName()">Draw Name</button> <button id="redrawBtn" class="hidden" onclick="drawName(true)">Redraw</button> </div> <div id="result" style="font-size:20px;margin-top:15px;font-weight:bold;"></div> <div class="row" style="margin-top:12px;"> <button id="resetBtn" class="hidden" onclick="resetSession()">Reset/Delete Session (admin)</button> <button onclick="leaveSession()">Leave</button> </div> </div> <script> /* ---------------------------- FIREBASE CONFIG --------------------------------*/ const firebaseConfig = {
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secret Santa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+    textarea, input { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+    button { padding: 10px 20px; margin-top: 12px; width: 100%; cursor: pointer; }
+    .hidden { display: none; }
+    .codeBox { font-size: 20px; font-weight: bold; text-align: center; margin-top: 10px; }
+    .small { font-size: 13px; color: #666; margin-top: 6px; }
+    .row { display:flex; gap:10px; }
+    .row > button { flex: 1; }
+  </style>
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<h2>Secret Santa 🎁</h2>
+
+<!-- STEP 1: CREATE SESSION -->
+<div id="createSession">
+  <h3>Create a Secret Santa Session</h3>
+  <p>Enter names (one per line):</p>
+  <textarea id="namesInput" rows="6" placeholder="Alice\nBob\nCharlie"></textarea>
+  <button onclick="createSession()">Create Session</button>
+  <div class="small">The session code appears after creation. Device that creates session is admin.</div>
+</div>
+
+<!-- STEP 2: SHOW SESSION CODE -->
+<div id="sessionCreated" class="hidden">
+  <h3>Session Created!</h3>
+  <p>Share this code with everyone:</p>
+  <div id="sessionCode" class="codeBox"></div>
+  <div class="row" style="margin-top:12px;">
+    <button onclick="copyCode()">Copy Code</button>
+    <button onclick="gotoJoin()">Open Join Page</button>
+  </div>
+</div>
+
+<hr>
+
+<!-- STEP 3: JOIN SESSION -->
+<div id="joinSession">
+  <h3>Join a Session</h3>
+  <input id="joinCodeInput" placeholder="Enter session code">
+  <div class="row">
+    <button onclick="joinSession()">Join</button>
+    <button onclick="quickJoin()">Quick join (paste code)</button>
+  </div>
+  <div id="joinMsg" class="small"></div>
+</div>
+
+<!-- STEP 4: DRAW NAME -->
+<div id="drawBox" class="hidden">
+  <h3>Draw Your Secret Santa 🎅</h3>
+  <div id="drawInfo" class="small"></div>
+  <div class="row">
+    <button id="drawBtn" onclick="drawName()">Draw Name</button>
+    <button id="redrawBtn" class="hidden" onclick="drawName(true)">Redraw</button>
+  </div>
+  <div id="result" style="font-size:20px;margin-top:15px;font-weight:bold;"></div>
+  <div class="row" style="margin-top:12px;">
+    <button id="resetBtn" class="hidden" onclick="resetSession()">Reset/Delete Session (admin)</button>
+    <button onclick="leaveSession()">Leave</button>
+  </div>
+</div>
+
+<script>
+/* ---------------------------- FIREBASE CONFIG --------------------------------*/
+const firebaseConfig = {
   apiKey: "AIzaSyDZnFxvPK9CVtnDM7AF7qwkC8sYTa3N2do",
   authDomain: "secret-santa-35206.firebaseapp.com",
   projectId: "secret-santa-35206",
@@ -6,4 +78,205 @@
   messagingSenderId: "338884206556",
   appId: "1:338884206556:web:9e0eb5422d6a9233f2b919",
   measurementId: "G-0BSS12D90K"
-}; firebase.initializeApp(firebaseConfig); const db = firebase.firestore(); /* ---------------------------- Local device ID --------------------------------*/ function getLocalUserId() { let id = localStorage.getItem("santa_user_id"); if (!id) { id = Math.random().toString(36).substring(2, 10); localStorage.setItem("santa_user_id", id); } return id; } const localUserId = getLocalUserId(); /* ---------------------------- Random session code --------------------------------*/ function randomCode(length = 6) { let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let code = ""; for (let i = 0; i < length; i++) code += chars[Math.floor(Math.random() * chars.length)]; return code; } /* ---------------------------- UI Helpers --------------------------------*/ function $(id){ return document.getElementById(id); } function show(id){ $(id).classList.remove("hidden"); } function hide(id){ $(id).classList.add("hidden"); } /* ---------------------------- STEP 1: CREATE SESSION --------------------------------*/ async function createSession() { let input = $("namesInput").value.trim(); if (!input) return alert("Enter names!"); let names = input.split("\n").map(n=>n.trim()).filter(n=>n); if (names.length < 2) return alert("Enter at least 2 names."); let sessionCode; for (let tries=0; tries<10; tries++) { sessionCode = randomCode(); let doc = await db.collection("sessions").doc(sessionCode).get(); if (!doc.exists) break; sessionCode = null; } if (!sessionCode) return alert("Could not generate unique code. Try again."); await db.collection("sessions").doc(sessionCode).set({ names: names, drawn: {} }); localStorage.setItem("santa_admin_session", sessionCode); hide("createSession"); show("sessionCreated"); $("sessionCode").textContent = sessionCode; } /* ---------------------------- Copy / navigation --------------------------------*/ function copyCode() { const code = $("sessionCode").textContent; navigator.clipboard?.writeText(code).then(()=>alert("Copied!"), ()=>alert("Copy failed")); } function gotoJoin() { hide("createSession"); hide("sessionCreated"); show("joinSession"); } /* ---------------------------- STEP 3: JOIN SESSION --------------------------------*/ let currentSession = null; function quickJoin() { let code = $("joinCodeInput").value.trim().toUpperCase(); if(!code) return alert("Paste a code first"); joinSession(code); } function joinSession(passedCode) { let code = passedCode || $("joinCodeInput").value.trim().toUpperCase(); if (!code) return alert("Enter a session code"); currentSession = code; // Prompt for local name on join if not set if (!localStorage.getItem("santa_user_name")) { const name = prompt("Enter your name:"); if (!name) return alert("You must enter a name to join!"); localStorage.setItem("santa_user_name", name.trim()); } db.collection("sessions").doc(code).get().then(doc => { if (!doc.exists) { $("joinMsg").textContent = "Session not found!"; return; } $("joinMsg").textContent = ""; hide("createSession"); hide("sessionCreated"); hide("joinSession"); show("drawBox"); $("drawInfo").textContent = "Session: " + code; const adminSession = localStorage.getItem("santa_admin_session"); $("resetBtn").classList.toggle("hidden", adminSession !== code); const stored = localStorage.getItem("santa_draw_" + code); if (stored) { $("result").textContent = "You already drew: " + stored; $("drawBtn").disabled = true; } else { $("result").textContent = ""; $("drawBtn").disabled = false; } }); } /* ---------------------------- STEP 4: DRAW NAME with REDRAW --------------------------------*/ async function drawName(isRedraw=false) { if (!currentSession) return alert("Not joined to a session!"); const docRef = db.collection("sessions").doc(currentSession); const stored = localStorage.getItem("santa_draw_" + currentSession); if (stored && !isRedraw) { $("result").textContent = "You already drew: " + stored; $("drawBtn").disabled = true; $("redrawBtn").classList.add("hidden"); return; } try { const chosen = await db.runTransaction(async (tx)=>{ const doc = await tx.get(docRef); if (!doc.exists) throw "Session not found"; const data = doc.data(); const names = data.names || []; const drawn = data.drawn || {}; const taken = Object.values(drawn); const remaining = names.filter(n => !taken.includes(n)); if (remaining.length === 0) return null; const localName = localStorage.getItem("santa_user_name"); // self-draw const pick = remaining[Math.floor(Math.random()*remaining.length)]; if (pick === localName && !isRedraw) return "SELF_DRAW"; drawn[localUserId] = pick; tx.update(docRef, { drawn: drawn }); return pick; }); if (chosen === null) { $("result").textContent = "All names already drawn!"; $("drawBtn").disabled = true; $("redrawBtn").classList.add("hidden"); return; } if (chosen === "SELF_DRAW") { $("result").textContent = "Oops! You drew your own name. Click Redraw."; $("redrawBtn").classList.remove("hidden"); return; } localStorage.setItem("santa_draw_" + currentSession, chosen); $("result").textContent = "You got: " + chosen; $("drawBtn").disabled = true; $("redrawBtn").classList.add("hidden"); } catch(err) { console.error(err); alert("Draw failed: " + (err?.message || err)); } } /* ---------------------------- Admin: Reset/Delete session --------------------------------*/ async function resetSession() { if (!currentSession) return; if (!confirm("Delete this session for everyone? This cannot be undone.")) return; try { await db.collection("sessions").doc(currentSession).delete(); const adminSession = localStorage.getItem("santa_admin_session"); if (adminSession === currentSession) localStorage.removeItem("santa_admin_session"); alert("Session deleted."); leaveSession(); } catch(err) { console.error(err); alert("Could not delete session: " + err); } } /* ---------------------------- Leave session --------------------------------*/ function leaveSession() { currentSession = null; hide("drawBox"); show("joinSession"); $("joinCodeInput").value = ""; $("result").textContent = ""; $("drawBtn").disabled = false; $("redrawBtn").classList.add("hidden"); } </script> </body> </html>
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ---------------------------- Local device ID --------------------------------*/
+function getLocalUserId() {
+  let id = localStorage.getItem("santa_user_id");
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 10);
+    localStorage.setItem("santa_user_id", id);
+  }
+  return id;
+}
+const localUserId = getLocalUserId();
+
+/* ---------------------------- Random session code --------------------------------*/
+function randomCode(length = 6) {
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < length; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+/* ---------------------------- UI Helpers --------------------------------*/
+function $(id){ return document.getElementById(id); }
+function show(id){ $(id).classList.remove("hidden"); }
+function hide(id){ $(id).classList.add("hidden"); }
+
+/* ---------------------------- STEP 1: CREATE SESSION --------------------------------*/
+async function createSession() {
+  let input = $("namesInput").value.trim();
+  if (!input) return alert("Enter names!");
+  let names = input.split("\n").map(n=>n.trim()).filter(n=>n);
+  if (names.length < 2) return alert("Enter at least 2 names.");
+
+  let sessionCode;
+  for (let tries=0; tries<10; tries++) {
+    sessionCode = randomCode();
+    let doc = await db.collection("sessions").doc(sessionCode).get();
+    if (!doc.exists) break;
+    sessionCode = null;
+  }
+  if (!sessionCode) return alert("Could not generate unique code. Try again.");
+
+  await db.collection("sessions").doc(sessionCode).set({
+    names: names,
+    drawn: {}
+  });
+
+  localStorage.setItem("santa_admin_session", sessionCode);
+  hide("createSession");
+  show("sessionCreated");
+  $("sessionCode").textContent = sessionCode;
+}
+
+/* ---------------------------- Copy / navigation --------------------------------*/
+function copyCode() {
+  const code = $("sessionCode").textContent;
+  navigator.clipboard?.writeText(code).then(()=>alert("Copied!"), ()=>alert("Copy failed"));
+}
+function gotoJoin() {
+  hide("createSession");
+  hide("sessionCreated");
+  show("joinSession");
+}
+
+/* ---------------------------- STEP 3: JOIN SESSION --------------------------------*/
+let currentSession = null;
+
+function quickJoin() {
+  let code = $("joinCodeInput").value.trim().toUpperCase();
+  if(!code) return alert("Paste a code first");
+  joinSession(code);
+}
+
+function joinSession(passedCode) {
+  let code = passedCode || $("joinCodeInput").value.trim().toUpperCase();
+  if (!code) return alert("Enter a session code");
+  currentSession = code;
+
+  // Prompt for local name if not stored
+  if (!localStorage.getItem("santa_user_name")) {
+    const name = prompt("Enter your name:");
+    if (!name) return alert("You must enter a name to join!");
+    localStorage.setItem("santa_user_name", name.trim());
+  }
+
+  db.collection("sessions").doc(code).get().then(doc => {
+    if (!doc.exists) {
+      $("joinMsg").textContent = "Session not found!";
+      return;
+    }
+    $("joinMsg").textContent = "";
+    hide("createSession");
+    hide("sessionCreated");
+    hide("joinSession");
+    show("drawBox");
+    $("drawInfo").textContent = "Session: " + code;
+
+    const adminSession = localStorage.getItem("santa_admin_session");
+    $("resetBtn").classList.toggle("hidden", adminSession !== code);
+
+    const stored = localStorage.getItem("santa_draw_" + code);
+    if (stored) {
+      $("result").textContent = "You already drew: " + stored;
+      $("drawBtn").disabled = true;
+    } else {
+      $("result").textContent = "";
+      $("drawBtn").disabled = false;
+    }
+  });
+}
+
+/* ---------------------------- STEP 4: DRAW NAME with REDRAW --------------------------------*/
+async function drawName(isRedraw=false) {
+  if (!currentSession) return alert("Not joined to a session!");
+  const docRef = db.collection("sessions").doc(currentSession);
+
+  const stored = localStorage.getItem("santa_draw_" + currentSession);
+  if (stored && !isRedraw) {
+    $("result").textContent = "You already drew: " + stored;
+    $("drawBtn").disabled = true;
+    $("redrawBtn").classList.add("hidden");
+    return;
+  }
+
+  try {
+    const chosen = await db.runTransaction(async (tx)=>{
+      const doc = await tx.get(docRef);
+      if (!doc.exists) throw "Session not found";
+
+      const data = doc.data();
+      const names = data.names || [];
+      const drawn = data.drawn || {};
+      const taken = Object.values(drawn);
+      const remaining = names.filter(n => !taken.includes(n));
+
+      if (remaining.length === 0) return null;
+
+      const localName = localStorage.getItem("santa_user_name");
+      const pick = remaining[Math.floor(Math.random()*remaining.length)];
+
+      if (pick === localName && !isRedraw) return "SELF_DRAW";
+
+      drawn[localUserId] = pick;
+      tx.update(docRef, { drawn: drawn });
+      return pick;
+    });
+
+    if (chosen === null) {
+      $("result").textContent = "All names already drawn!";
+      $("drawBtn").disabled = true;
+      $("redrawBtn").classList.add("hidden");
+      return;
+    }
+
+    if (chosen === "SELF_DRAW") {
+      $("result").textContent = "Oops! You drew your own name. Click Redraw.";
+      $("redrawBtn").classList.remove("hidden");
+      return;
+    }
+
+    localStorage.setItem("santa_draw_" + currentSession, chosen);
+    $("result").textContent = "You got: " + chosen;
+    $("drawBtn").disabled = true;
+    $("redrawBtn").classList.add("hidden");
+
+  } catch(err) {
+    console.error(err);
+    alert("Draw failed: " + (err?.message || err));
+  }
+}
+
+/* ---------------------------- Admin: Reset/Delete session --------------------------------*/
+async function resetSession() {
+  if (!currentSession) return;
+  if (!confirm("Delete this session for everyone? This cannot be undone.")) return;
+  try {
+    await db.collection("sessions").doc(currentSession).delete();
+    const adminSession = localStorage.getItem("santa_admin_session");
+    if (adminSession === currentSession) localStorage.removeItem("santa_admin_session");
+    alert("Session deleted.");
+    leaveSession();
+  } catch(err) {
+    console.error(err);
+    alert("Could not delete session: " + err);
+  }
+}
+
+/* ---------------------------- Leave session --------------------------------*/
+function leaveSession() {
+  currentSession = null;
+  hide("drawBox");
+  show("joinSession");
+  $("joinCodeInput").value = "";
+  $("result").textContent = "";
+  $("drawBtn").disabled = false;
+  $("redrawBtn").classList.add("hidden");
+}
+</script>
+</body>
+</html>
